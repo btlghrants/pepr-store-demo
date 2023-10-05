@@ -1,0 +1,33 @@
+{
+  "name": "pepr-store-demo",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [
+    "pepr",
+    "k8s",
+    "policy-engine",
+    "pepr-module",
+    "security"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "pepr": {
+    "name": "pepr-store-demo",
+    "uuid": "7296dc8f-54ec-5237-a340-d27ffdfb48e3",
+    "onError": "reject",
+    "alwaysIgnore": {
+      "namespaces": [],
+      "labels": []
+    }
+  },
+  "scripts": {
+    "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0'"
+  },
+  "dependencies": {
+    "pepr": "0.14.0"
+  },
+  "devDependencies": {
+    "typescript": "5.2.2"
+  }
+}
