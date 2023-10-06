@@ -22,7 +22,15 @@
     }
   },
   "scripts": {
-    "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0'"
+    "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0'",
+    "dev:build": "npx pepr build",
+    "dev:deploy": "npx pepr deploy --confirm",
+    "dev:redeploy": "npm run k3d-setup; npm run dev:deploy",
+    "dev:apply": "kubectl apply -f ./capabilities/pepr-store-demo/capability.yaml",
+    "dev:unapply": "kubectl delete -f ./capabilities/pepr-store-demo/capability.yaml",
+    "dev:uuid": "ls /store/dist/pepr-*.yaml | sed -E 's/(.*pepr-module-|.yaml)//g'",
+    "dev:logs": "npm run --silent dev:uuid | xargs -I {} kubectl logs -n pepr-system -l \"app=pepr-{}\" --all-containers --tail=-1 2>/dev/null | grep -v '/healthz' | jq --slurp 'sort_by(.time)'",
+    "dev:logs:msg": "npm run --silent dev:logs | jq -r '.[] | (.time | tostring) +\" \"+ (.hostname | split(\"-\") | last) +\" \"+ .msg'"
   },
   "dependencies": {
     "pepr": "0.14.0"
