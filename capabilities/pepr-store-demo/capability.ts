@@ -11,19 +11,22 @@ const { When /*, Store*/ } = PeprStoreDemo;
 When(a.Namespace)
   .IsCreated()
   .Mutate(ns => {
-    Log.info(`  --> mutate on namespace created: ${ns}`);
+    const name = ns.Raw.metadata.name;
+    Log.info(`  --> mutate on namespace created: ${name}`);
   });
 
 When(a.Namespace)
   .IsUpdated()
   .Mutate(ns => {
-    Log.info(`  --> mutate on namespace updated: ${ns}`);
+    const name = ns.Raw.metadata.name;
+    Log.info(`  --> mutate on namespace updated: ${name}`);
   });
 
 When(a.Namespace)
   .IsDeleted()
   .Mutate(ns => {
-    Log.info(`  --> mutate on namespace deleted: ${ns}`);
+    const name = ns.Raw.metadata.name;
+    Log.info(`  --> mutate on namespace deleted: ${name}`);
   });
 
 When(a.Namespace)
