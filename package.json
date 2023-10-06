@@ -24,7 +24,7 @@
   "scripts": {
     "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0'",
     "dev:build": "npx pepr build",
-    "dev:uuid": "ls /store/dist/pepr-*.yaml | sed -E 's/(.*pepr-module-|.yaml)//g'",
+    "dev:uuid": "cat package.json | jq -r '.pepr.uuid'",
     "dev:deploy": "npx pepr deploy --confirm",
     "dev:deploy:wait": "npm run --silent dev:uuid | xargs -I {} kubectl wait -n pepr-system --for=condition=ready pod -l app=pepr-{}",
     "dev:redeploy": "npm run k3d-setup; npm run dev:deploy",
