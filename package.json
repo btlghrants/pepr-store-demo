@@ -23,7 +23,7 @@
   },
   "scripts": {
     "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0'",
-    "test": "jest capabilities",
+    "test": "jest",
 
     "dev:build": "npx pepr build",
     "dev:uuid": "cat package.json | jq -r '.pepr.uuid'",
