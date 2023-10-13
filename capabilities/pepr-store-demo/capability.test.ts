@@ -6,6 +6,7 @@ import * as util from 'util';
 import * as child_process from 'child_process';
 const exec = util.promisify(child_process.exec);
 import { K8s, kind } from "kubernetes-fluent-client";
+import { waitFor } from "../test.helpers";
 
 
 class TestRunConfig {
@@ -21,21 +22,15 @@ class TestRunConfig {
 }
 const runConf = new TestRunConfig()
 
-function sleep(seconds: number): Promise<void> {
-  return new Promise(res => setTimeout(res, seconds * 1000));
-}
-
-async function waitFor(pred: () => Promise<boolean>) {
-  while (true) { if (await pred()) { break } await sleep(1) }
-}
-
 async function cleanCluster(trc: TestRunConfig): Promise<void> {
   const nsList = await K8s(kind.Namespace).Get()
+  
   const testNamespaces = nsList.items.filter(ns => {
     return ns.metadata.labels[trc.labelKey]
   })
-  
+
   testNamespaces.forEach(async ns => { await K8s(kind.Namespace).Delete(ns) })
+
   const gone = async (ns) => {
     try { await K8s(kind.Namespace).Get(ns.metadata.name) }
     catch (e) { if (e.status === 404) { return Promise.resolve(true)} }
@@ -48,9 +43,9 @@ async function cleanCluster(trc: TestRunConfig): Promise<void> {
 async function setupCluster(trc: TestRunConfig): Promise<any> {
   const ns = K8s(kind.Namespace).Apply({
     metadata: {
-      name: runConf.namespace,
+      name: trc.namespace,
       labels: {
-        [runConf.labelKey]: runConf.unique
+        [trc.labelKey]: trc.unique
       }
     }
   })
@@ -60,16 +55,38 @@ async function setupCluster(trc: TestRunConfig): Promise<any> {
 beforeAll(async () => {
   await cleanCluster(runConf)
   await setupCluster(runConf)
-    
+
 }, 30000) // 30 sec timeout
 
-describe("asdf", () => {
-  it("fdsa", async () => {
-    const cmd = `npm run --silent dev:logs:msg`
-    const {stdout, stderr} = await exec(cmd)
-    // const logs = JSON.parse(stdout)
-    // expect(logs).toBe('')
-    expect(stdout).toBe('')
-    expect(stderr).toBe('')
+describe("example test structure", () => {
+  it("builds Pepr Module", () => {
+    console.log("a")
+  })
+
+  it.skip("deploys Pepr Module", () => {
+    console.log("b")
+  })
+
+  it.skip("applys trigger manifest", () => {
+    console.log("c")
+  })
+
+  it.skip("perpares completion resource watch", () => {
+    console.log("d")
+  })
+
+  it.skip("asserts cluster state", () => {
+    console.log("e")
   })
 })
+
+// describe("asdf", () => {
+//   it("fdsa", async () => {
+    // const cmd = `npm run --silent dev:logs:msg`
+    // const {stdout, stderr} = await exec(cmd)
+    // // const logs = JSON.parse(stdout)
+    // // expect(logs).toBe('')
+    // expect(stdout).toBe('')
+    // expect(stderr).toBe('')
+//   })
+// })
