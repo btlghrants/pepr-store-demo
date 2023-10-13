@@ -27,10 +27,18 @@ Module Root
     I want new Modules to come with test wiring
     So that Capability testing is easy to get started with
 
-  - write some tests to exercise all this stuff..?
-    - create test-run-scoped/-named namespace
-    - create ns'd test case -triggering ConfigMap
-    - wait for the test case -finishing ConfigMap
+  - write some tests to exercise:
+    - ✓ create test-run-scoped/-named namespace
+    - remove remove any pre-existing capability-scoped Pepr Modules from cluster
+      - how though..?
+    - create capability-scoped test Module file which should:
+      - * imports only a single capability (for purity of testing)
+    - deploy test Module to cluster
+    - wait for test Module controller to load
+    - apply capability action-triggering resource (e.g. ConfigMap)
+    - waitFor capability action-completion resource (e.g. ConfigMap)
+      - add timeout param (so tests don't hang forever)
+      - add tests for helpers.waitFor (etc.)
     - assert on resulting cluster state
 
 - investigate Pepr Store

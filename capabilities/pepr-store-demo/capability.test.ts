@@ -6,7 +6,7 @@ import * as util from 'util';
 import * as child_process from 'child_process';
 const exec = util.promisify(child_process.exec);
 import { K8s, kind } from "kubernetes-fluent-client";
-import { waitFor } from "../test.helpers";
+import { waitFor } from "./test.helpers";
 
 
 class TestRunConfig {
