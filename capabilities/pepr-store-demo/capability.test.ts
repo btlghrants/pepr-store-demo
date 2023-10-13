@@ -8,6 +8,19 @@ const exec = util.promisify(child_process.exec);
 import { K8s, kind } from "kubernetes-fluent-client";
 
 
+class TestRunConfig {
+  unique: string;
+  namespace: string;
+  labelKey: string;
+
+  constructor(ts: string = new Date().valueOf().toString()) {
+    this.unique = ts;
+    this.namespace = `pepr-store-demo-${ts}`
+    this.labelKey = "pepr-store-demo/test-transient"
+  }
+}
+const runConf = new TestRunConfig()
+
 function sleep(seconds: number): Promise<void> {
   return new Promise(res => setTimeout(res, seconds * 1000));
 }
@@ -16,35 +29,38 @@ async function waitFor(pred: () => Promise<boolean>) {
   while (true) { if (await pred()) { break } await sleep(1) }
 }
 
-let testTimestamp = new Date().valueOf().toString()
-let testNamespace = `pepr-store-demo-${testTimestamp}`
-let testLabel = "pepr-store-demo/test-transient"
-
-beforeAll(async () => {
-  let list = await K8s(kind.Namespace).Get()
-  let nses = list.items.filter(ns => {
-    return ns.metadata.labels[testLabel]
+async function cleanCluster(trc: TestRunConfig): Promise<void> {
+  const nsList = await K8s(kind.Namespace).Get()
+  const testNamespaces = nsList.items.filter(ns => {
+    return ns.metadata.labels[trc.labelKey]
   })
-  nses.forEach(async ns => {
-    console.log(`Delete Namespace: ${ns.metadata.name}`)
-    await K8s(kind.Namespace).Delete(ns)
-  })
-
+  
+  testNamespaces.forEach(async ns => { await K8s(kind.Namespace).Delete(ns) })
   const gone = async (ns) => {
     try { await K8s(kind.Namespace).Get(ns.metadata.name) }
     catch (e) { if (e.status === 404) { return Promise.resolve(true)} }
     return Promise.resolve(false)
   }
-  const terminating = nses.map(async ns => waitFor(() => gone(ns)))
+  const terminating = testNamespaces.map(async ns => waitFor(() => gone(ns)))
   await Promise.all(terminating)
+}
 
-  await K8s(kind.Namespace).Apply({
-    metadata: { name: testNamespace, labels: { [testLabel]: testTimestamp } }
+async function setupCluster(trc: TestRunConfig): Promise<any> {
+  const ns = K8s(kind.Namespace).Apply({
+    metadata: {
+      name: runConf.namespace,
+      labels: {
+        [runConf.labelKey]: runConf.unique
+      }
+    }
   })
+  return Promise.all([ns])
+}
 
-  // const cmd = `npm run --silent dev:logs:msg`
-  // const {stdout, stderr} = await exec(cmd)
-
+beforeAll(async () => {
+  await cleanCluster(runConf)
+  await setupCluster(runConf)
+    
 }, 30000) // 30 sec timeout
 
 describe("asdf", () => {
