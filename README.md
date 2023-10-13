@@ -19,3 +19,38 @@ Module Root
     ├── example-three.ts
     └── example-two.ts
 ```
+
+# TODOs
+
+- test wiring for Pepr Modules..?
+  - As a Capability Developer
+    I want new Modules to come with test wiring
+    So that Capability testing is easy to get started with
+
+  - write some tests to exercise all this stuff..?
+    - create test-run-scoped/-named namespace
+    - create ns'd test case -triggering ConfigMap
+    - wait for the test case -finishing ConfigMap
+    - assert on resulting cluster state
+
+- investigate Pepr Store
+  - temporal dead-zone at startup
+    - how to wait for load..?
+  - availablilty in hooks / capability / action scopes
+  - how _exactly_ to share state across capabilities
+  - how to write-then-wait to store
+    - ...so code execution can continue _after_ write is durable!
+
+- is Pepr Store WebStorage API -compabible or _-inspired_?
+  - WebStorage API is synchronous (https://dev.to/shivarajnaidu/a-new-async-key-value-local-storage-for-web-jb)\
+  - ...is Pepr Store synchronous?
+
+- setItem() -> subscribe() -> on data seen -> unsubscribe()
+  - try it!
+
+- onReady()
+  - exercise it!
+  - what happens if I try to hit it before it's "ready"?
+
+- how to I "do stuff" with the Store from Module Hooks..?
+  - I seem to need the Capability to exist so I can pull the Store from it!

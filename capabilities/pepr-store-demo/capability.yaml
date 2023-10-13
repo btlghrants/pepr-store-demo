@@ -1,4 +1,11 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: pepr-store-demo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: pepr-store-demo
+  name: example-001-trigger
