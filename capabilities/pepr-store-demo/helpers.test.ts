@@ -2,25 +2,28 @@
 // SPDX-FileCopyrightText: 2023-Present The Pepr Authors
 
 import { describe, expect, it } from '@jest/globals';
-import { sleep, waitFor } from "./helpers";
+import { sleep, untilTrue } from "./helpers";
 
 describe("sleep", () => {
   it("resolves after (roughly) given number of seconds", async () => {
-    const nearestThousand = (num: number) => Math.round( num / 1000 ) * 1000;
+    const checkTheClock = () => new Date().valueOf();  // ms since epoch
+    const nearestSecond = (num) => Math.round( num / 1000 );
+    const seconds = 1
 
-    const seconds = 2, millis = seconds * 1000
-    const alpha = new Date().valueOf()
-    
+    const alpha = checkTheClock()
     await sleep(seconds)
-    const omega = new Date().valueOf()
-    const delta = nearestThousand( omega - alpha )
+    const omega = checkTheClock()
+    const delta = nearestSecond(omega - alpha)
 
-    expect(delta).toBe(millis)
+    expect(delta).toBe(seconds)
   })
 })
 
-describe("waitFor", () => {
-  it.only("uh, does..?", async () => {
-    
+describe("untilTrue", () => {
+  it("resolves when true", async () => {
+    let predicate = () => new Promise<boolean>(resolve => {
+      setTimeout(() => resolve(true), 250)
+    })
+    await untilTrue(predicate)
   })
 })

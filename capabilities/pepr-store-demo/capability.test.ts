@@ -6,7 +6,7 @@ import * as util from 'util';
 import * as child_process from 'child_process';
 const exec = util.promisify(child_process.exec);
 import { K8s, kind } from "kubernetes-fluent-client";
-import { waitFor } from "./helpers";
+import { untilTrue } from "./helpers";
 
 
 class TestRunConfig {
@@ -36,7 +36,7 @@ async function cleanCluster(trc: TestRunConfig): Promise<void> {
     catch (e) { if (e.status === 404) { return Promise.resolve(true)} }
     return Promise.resolve(false)
   }
-  const terminating = testNamespaces.map(async ns => waitFor(() => gone(ns)))
+  const terminating = testNamespaces.map(async ns => untilTrue(() => gone(ns)))
   await Promise.all(terminating)
 }
 
@@ -79,14 +79,3 @@ describe("example test structure", () => {
     console.log("e")
   })
 })
-
-// describe("asdf", () => {
-//   it("fdsa", async () => {
-    // const cmd = `npm run --silent dev:logs:msg`
-    // const {stdout, stderr} = await exec(cmd)
-    // // const logs = JSON.parse(stdout)
-    // // expect(logs).toBe('')
-    // expect(stdout).toBe('')
-    // expect(stderr).toBe('')
-//   })
-// })
