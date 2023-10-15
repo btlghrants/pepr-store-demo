@@ -31,6 +31,8 @@ async function cleanCluster(trc: TestRunConfig): Promise<void> {
 
   testNamespaces.forEach(async ns => { await K8s(kind.Namespace).Delete(ns) })
 
+  if (process.env.TEST_SKIP_TERMINATING_WAIT) { return }
+
   const gone = async (ns) => {
     try { await K8s(kind.Namespace).Get(ns.metadata.name) }
     catch (e) { if (e.status === 404) { return Promise.resolve(true)} }
