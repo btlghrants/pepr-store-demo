@@ -1,12 +1,20 @@
 import { a, Capability, Log } from "pepr";
 
-export const PeprStoreDemo = new Capability({
+export const DefaultCapabilityCfg = {
   name: "pepr-store-demo",
   description: "A capability to demonstrate/exercise the Pepr Store.",
   namespaces: ["pepr-store-demo"],
-});
+}
+
+export const PeprStoreDemo = new Capability(DefaultCapabilityCfg);
 
 const { When, Store } = PeprStoreDemo;
+
+When(a.ConfigMap)
+  .IsCreated()
+  .Mutate(cm => {
+    Log.info(`  --> mutate on configmap create: ${cm.Raw.metadata.name}`);
+  });
 
 // When(a.Namespace)
 //   .IsCreated()
