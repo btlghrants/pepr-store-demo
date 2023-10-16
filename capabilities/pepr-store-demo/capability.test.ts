@@ -89,7 +89,7 @@ describe("Capability test Module", () => {
     // await cp.exec(`kubectl rollout status deployment -n pepr-system `)
   }, secs(5))
 
-  it.skip("completes processing", async () => {
+  it.skip("does things!", async () => {
     // await cp.exec(`kubectl rollout status deployment -n pepr-system `)
   }, mins(1))
 })
