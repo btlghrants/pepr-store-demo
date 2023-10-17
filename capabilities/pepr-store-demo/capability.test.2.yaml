@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-bravo
+data:
+  first: "false"
+  second: "true"

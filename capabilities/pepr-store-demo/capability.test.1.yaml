@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-alpha
+  labels:
+    already: "has-one"
+data:
+  first: "true"
+  second: "false"
