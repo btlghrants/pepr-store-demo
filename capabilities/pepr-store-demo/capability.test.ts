@@ -42,6 +42,10 @@ class TestRunCfg {
     this.namespace = `pepr-store-demo-${unique}`
     this.labelKey = "pepr-store-demo/test-transient"
   }
+
+  manifest(index: number): string {
+    return this.manifests[index][1]
+  }
 }
 const runConf = new TestRunCfg()
 
@@ -87,7 +91,8 @@ async function generateTestManifests(trc: TestRunCfg) {
       `kubectl apply -f ${yaml} --dry-run=client --output json`
     )
 
-    // convert raw json into array of one-or-more js objects
+    // convert json into array of one-or-more js objects
+    // see: https://kubernetes.io/docs/reference/using-api/api-concepts/#collections
     let raw = JSON.parse(stdout)
     let resources = (raw.kind === "List" ? raw.items : [ raw ])
 
@@ -106,7 +111,6 @@ async function generateTestManifests(trc: TestRunCfg) {
     })
 
     // re-add client-side (kubectl) `kind: "List"` wrapping
-    // see: https://kubernetes.io/docs/reference/using-api/api-concepts/#collections
     resources = {"kind": "List", apiVersion: "v1", "items": resources}
     const ready = JSON.stringify(resources, null, 2)
   
@@ -115,34 +119,67 @@ async function generateTestManifests(trc: TestRunCfg) {
   }
 }
 
-beforeAll(async () => {
-  await cleanCluster(runConf)
-  await setupCluster(runConf)
-}, mins(1))
+// beforeAll(async () => {
+//   await cleanCluster(runConf)
+//   await setupCluster(runConf)
+// }, mins(1))
 
 describe("Capability Module Test", () => {
 
-  describe("Arrange", () => {
-    it("builds", async () => {
+  describe("Cluster", () => {
+    it("Clean", async () => {
+      await cleanCluster(runConf)
+    }, mins(1))
+
+    it("Prepare", async () => {
+      await setupCluster(runConf)
+    }, secs(1))
+  })
+
+  describe("Module", () => {
+    it("Build", async () => {
       await cp.exec(`npx pepr build --entry-point ${runConf.module}`)
     }, secs(10))
 
-    it("deploys", async () => {
+    it("Deploy", async () => {
       await cp.exec(`npx pepr deploy --confirm`)
     }, secs(10))
 
-    it("starts", async () => {
+    it("Startup", async () => {
       await cp.exec(`kubectl rollout status deployment -n pepr-system`)
     }, secs(15))
   })
 
-  describe("Act", () => {
-    it("applies resources", async () => {
-      await generateTestManifests(runConf)
-      runConf.manifests.forEach(async ([_, m]) => {
-        await cp.exec(`kubectl apply -f ${m}`)
-      })
-    }, secs(5))
+  describe("Scenario", () => {
+    describe("Arrange", () => {
+      it('Generate test manifests', async () => {
+        await generateTestManifests(runConf)        
+      }, secs(2))
+    })
+
+    describe("Step 0", () => {
+      it("Act", async () => {
+        await cp.exec(`kubectl apply -f ${runConf.manifest(0)}`)
+      }, secs(1))
+
+      it("Assert", async () => {
+        let cm = await K8s(kind.ConfigMap)
+          .InNamespace(runConf.namespace)
+          .Get("cm-alpha")
+      }, secs(1))
+    })
+
+    describe("Step 1", () => {
+      it("Act", async () => {
+        await cp.exec(`kubectl apply -f ${runConf.manifest(1)}`)
+      }, secs(1))
+
+      it("Assert", async () => {
+        let cm = await K8s(kind.ConfigMap)
+          .InNamespace(runConf.namespace)
+          .Get("cm-bravo")
+      }, secs(1))
+    })
   })
 
   // describe("Assert", () => {
