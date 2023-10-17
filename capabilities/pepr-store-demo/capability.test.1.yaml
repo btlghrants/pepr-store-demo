@@ -2,9 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cm-alpha
-  labels:
-    already: "has-one"
+  name: cm-bravo
 data:
-  first: "true"
-  second: "false"
+  first: "false"
+  second: "true"
