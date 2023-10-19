@@ -13,7 +13,7 @@ const { When, Store } = PeprStoreDemo;
 When(a.ConfigMap)
   .IsCreated()
   .Mutate(cm => {
-    Log.info(`  --> mutate on configmap create: ${cm.Raw.metadata.name}`);
+    cm.SetLabel("pepr-store-demo/touched", "true")
   });
 
 // When(a.Namespace)

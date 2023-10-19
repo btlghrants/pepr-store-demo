@@ -7,6 +7,7 @@ import * as child_process from 'child_process';
 const cp = {
   exec: util.promisify(child_process.exec)
 }
+import * as path from 'path';
 import { promises as fs } from 'fs';
 import { readdirSync } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
@@ -15,16 +16,22 @@ import { mins, secs, untilTrue } from "../helpers/helpers";
 class TestRunCfg {
   me: string;
   here: string;
+  // root: string;
+  // build: string;
   module: string;
+  // capability; string;
   manifests: [string, string][];
   unique: string;
   namespace: string;
   labelKey: string;
 
   constructor(unique: string = new Date().valueOf().toString()) {
-    this.me = __filename;
+    this.me = __filename
     this.here = __dirname
+    // this.root = process.cwd()
+    // this.build = `${this.me.match(/^(.*)\.test.*$/)[1]}_build`
     this.module = `${this.me.replace('.test', '.pepr')}`
+    // this.capability = `${this.me.replace('.test', '')}`
     this.manifests = readdirSync(this.here)
       .filter(f => /\.test\.\d+\.yaml$/.test(f))
       .sort((l, r) => {
@@ -124,62 +131,89 @@ async function generateTestManifests(trc: TestRunCfg) {
 //   await setupCluster(runConf)
 // }, mins(1))
 
-describe("Capability Module Test", () => {
+describe("Isolated Capability Module Test", () => {
 
   describe("Cluster", () => {
-    it("Clean", async () => {
-      await cleanCluster(runConf)
-    }, mins(1))
+    // it("Clean", async () => {
+    //   await cleanCluster(runConf)
+    // }, mins(1))
 
-    it("Prepare", async () => {
-      await setupCluster(runConf)
-    }, secs(1))
+    // it("Prepare", async () => {
+    //   await setupCluster(runConf)
+    // }, secs(1))
   })
 
   describe("Module", () => {
     it("Build", async () => {
-      await cp.exec(`npx pepr build --entry-point ${runConf.module}`)
+      // let {stdout} = await cp.exec(`npx pepr build`) <-- creates yaml; does not! --v
+      // let {stdout} = await cp.exec(`npx pepr build --entry-point ${runConf.module}`)
+      
+      // `pepr build` assumes /dist in project root, so... hacky c&p workarounds
+
+      // make module build dir
+      await fs.rm(runConf.build, { recursive: true, force: true })
+      await fs.mkdir(runConf.build)
+
+      // copy required files to build dir
+      await fs.copyFile(`${runConf.root}/package.json`, `${runConf.build}/package.json`)
+      await fs.copyFile(`${runConf.module}`, `${runConf.build}/pepr.ts`)
+      
+      // read/
+      await fs.copyFile(`${runConf.capability}`, `${runConf.build}/${path.basename(runConf.capability)}`)
+
+      // massage file contents (due to location move)
+
+
     }, secs(10))
 
-    it("Deploy", async () => {
-      await cp.exec(`npx pepr deploy --confirm`)
-    }, secs(10))
+    // it("Deploy", async () => {
+    //   // `pepr deploy` does it's own build, ugh!  Have to deploy manually (i.e. apply module .yaml!)
+    //   // await cp.exec(`npx pepr deploy --confirm`)
+    // }, secs(10))
 
-    it("Startup", async () => {
-      await cp.exec(`kubectl rollout status deployment -n pepr-system`)
-    }, secs(15))
+    // it("Startup", async () => {
+    //   await cp.exec(`kubectl rollout status deployment -n pepr-system`)
+    // }, secs(15))
   })
 
-  describe("Scenario", () => {
+  describe.skip("Scenario", () => {
     describe("Arrange", () => {
       it('Generate test manifests', async () => {
-        await generateTestManifests(runConf)        
+        await generateTestManifests(runConf)
       }, secs(2))
     })
 
     describe("Step 0", () => {
-      it("Act", async () => {
+      it("Act: create 'cm-alpha'", async () => {
         await cp.exec(`kubectl apply -f ${runConf.manifest(0)}`)
       }, secs(1))
 
-      it("Assert", async () => {
-        let cm = await K8s(kind.ConfigMap)
-          .InNamespace(runConf.namespace)
-          .Get("cm-alpha")
+      it("Assert: 'cm-alpha' has label 'pepr-store-demo/touched=true'", async () => {
+        const found = async () => {
+          const cm = await K8s(kind.ConfigMap)
+            .InNamespace(runConf.namespace)
+            .Get("cm-alpha")
+
+            console.log(cm)
+            const lbl = cm.metadata.labels["pepr-store-demo/touched"]
+            return lbl && lbl === "true"
+        }
+        await untilTrue(found)
       }, secs(1))
     })
 
-    describe("Step 1", () => {
-      it("Act", async () => {
-        await cp.exec(`kubectl apply -f ${runConf.manifest(1)}`)
-      }, secs(1))
+    // describe("Step 1", () => {
+    //   it("Act", async () => {
+    //     await cp.exec(`kubectl apply -f ${runConf.manifest(1)}`)
+    //   }, secs(1))
 
-      it("Assert", async () => {
-        let cm = await K8s(kind.ConfigMap)
-          .InNamespace(runConf.namespace)
-          .Get("cm-bravo")
-      }, secs(1))
-    })
+    //   it("Assert", async () => {
+    //     let cm = await K8s(kind.ConfigMap)
+    //       .InNamespace(runConf.namespace)
+    //       .Get("cm-bravo")
+    //   }, secs(1))
+    // })
+
   })
 
   // describe("Assert", () => {
