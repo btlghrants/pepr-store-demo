@@ -128,7 +128,6 @@ beforeAll(async () => {
   // Jest runs test files in parallel but we can't guarantee that capabilities
   // will only touch non-global cluster resources, so... we're serializing 
   // cluster access/ownership with a file-based lock
-
   await waitLock(runConf.lock, `${runConf.me}:${runConf.unique}`)
 })
 
@@ -180,7 +179,6 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
       if ( await fs.stat(rootBak).catch(() => {}) ) {
         await fs.rename(rootBak, rootMod)
       }
-
     }, secs(10))
 
     it("Deploy", async () => {
@@ -221,17 +219,23 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
       }, secs(1))
     })
 
-    // describe("Step 1", () => {
-    //   it("Act", async () => {
-    //     await cp.exec(`kubectl apply -f ${runConf.manifest(1)}`)
-    //   }, secs(1))
+    describe("Step 1", () => {
+      it("Act: create 'cm-bravo'", async () => {
+        await cp.exec(`kubectl apply -f ${runConf.manifest(1)}`)
+      }, secs(1))
 
-    //   it("Assert", async () => {
-    //     let cm = await K8s(kind.ConfigMap)
-    //       .InNamespace(runConf.namespace)
-    //       .Get("cm-bravo")
-    //   }, secs(1))
-    // })
+      it("Assert: 'cm-bravo' has label 'pepr-store-demo/touched=true'", async () => {
+        const found = async () => {
+          const cm = await K8s(kind.ConfigMap)
+            .InNamespace(runConf.namespace)
+            .Get("cm-bravo")
+
+            const lbl = cm.metadata.labels["pepr-store-demo/touched"]
+            return lbl && lbl === "true"
+        }
+        await untilTrue(found)
+      }, secs(1))
+    })
 
   })
 
