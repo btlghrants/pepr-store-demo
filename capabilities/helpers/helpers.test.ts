@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2023-Present The Pepr Authors
 
-import { describe, expect, it } from '@jest/globals';
-import { mins, secs, sleep, untilTrue } from "../helpers/helpers";
+import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
+import { ms, secs, mins, sleep, untilTrue, waitLock } from "../helpers/helpers";
+import { promises as fs } from 'fs';
+import * as os from 'os';
 
 describe("sleep", () => {
   it("resolves after (roughly) given number of seconds", async () => {
@@ -25,6 +27,19 @@ describe("untilTrue", () => {
       setTimeout(() => resolve(true), 250)
     })
     await untilTrue(predicate)
+  })
+})
+
+describe("ms", () => {
+  it("returns the appropriate number of milliseconds", () => {
+    const testTable = [
+      [100, 100],
+      [1000, 1000],
+      [10000, 10000]
+    ]
+    testTable.forEach(([input, result]) => {
+      expect(ms(input)).toBe(result)
+    })
   })
 })
 
@@ -51,5 +66,40 @@ describe("mins", () => {
     testTable.forEach(([input, result]) => {
       expect(mins(input)).toBe(result)
     })
+  })
+})
+
+describe("waitLock", () => {
+  let workdir: string;
+
+  beforeEach(async () => {
+    workdir = await fs.mkdtemp(`${os.tmpdir()}/waitLock-`)
+  })
+
+  it("immediate claim when free", async () => {
+    const lockfile = `${workdir}/lock.txt`
+    const myUnique = `/example/unique/value`
+
+    await waitLock(lockfile, myUnique)
+
+    expect(fs.stat(lockfile)).resolves.toBeTruthy()
+    expect(await fs.readFile(lockfile, "utf8")).toBe(myUnique)
+  }, secs(1))
+
+  it("wait and claim when free", async () => {
+    const lockfile = `${workdir}/lock.txt`
+    const myUnique = `/example/unique/value`
+    await fs.writeFile(lockfile, '/not/the/right/value')
+    setTimeout(async () => fs.rm(lockfile), ms(100))
+
+    await waitLock(lockfile, myUnique)
+
+    expect(fs.stat(lockfile)).resolves.toBeTruthy()
+    expect(await fs.readFile(lockfile, "utf8")).toBe(myUnique)
+    console.log(await fs.readFile(lockfile, "utf8"))
+  }, secs(2))
+
+  afterEach(async () => {
+    await fs.rm(workdir, { recursive: true, force: true })
   })
 })
