@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2023-Present The Pepr Authors
 
-import { beforeAll, describe, expect, it } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import * as util from 'util';
 import * as child_process from 'child_process';
 const cp = {
@@ -11,15 +11,14 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import { readdirSync } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
-import { mins, secs, untilTrue } from "../helpers/helpers";
+import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
 
 class TestRunCfg {
   me: string;
   here: string;
-  // root: string;
-  // build: string;
+  root: string;
+  lock: string;
   module: string;
-  // capability; string;
   manifests: [string, string][];
   unique: string;
   namespace: string;
@@ -28,10 +27,9 @@ class TestRunCfg {
   constructor(unique: string = new Date().valueOf().toString()) {
     this.me = __filename
     this.here = __dirname
-    // this.root = process.cwd()
-    // this.build = `${this.me.match(/^(.*)\.test.*$/)[1]}_build`
+    this.root = process.cwd()
+    this.lock = `${this.root}/cluster.lock`
     this.module = `${this.me.replace('.test', '.pepr')}`
-    // this.capability = `${this.me.replace('.test', '')}`
     this.manifests = readdirSync(this.here)
       .filter(f => /\.test\.\d+\.yaml$/.test(f))
       .sort((l, r) => {
@@ -126,57 +124,79 @@ async function generateTestManifests(trc: TestRunCfg) {
   }
 }
 
-// beforeAll(async () => {
-//   await cleanCluster(runConf)
-//   await setupCluster(runConf)
-// }, mins(1))
+beforeAll(async () => {
+  // Jest runs test files in parallel but we can't guarantee that capabilities
+  // will only touch non-global cluster resources, so... we're serializing 
+  // cluster access/ownership with a file-based lock
 
-describe("Isolated Capability Module Test", () => {
+  await waitLock(runConf.lock, `${runConf.me}:${runConf.unique}`)
+})
+
+describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Cluster", () => {
-    // it("Clean", async () => {
-    //   await cleanCluster(runConf)
-    // }, mins(1))
+    it("Clean", async () => {
+      await cleanCluster(runConf)
+    }, mins(1))
 
-    // it("Prepare", async () => {
-    //   await setupCluster(runConf)
-    // }, secs(1))
+    it("Prepare", async () => {
+      await setupCluster(runConf)
+    }, secs(1))
   })
 
   describe("Module", () => {
     it("Build", async () => {
-      // let {stdout} = await cp.exec(`npx pepr build`) <-- creates yaml; does not! --v
-      // let {stdout} = await cp.exec(`npx pepr build --entry-point ${runConf.module}`)
+      // `pepr build` requires /dist be in project root... hence, all of this ⮧
+      // TODO: add a `pepr build --outdir` flag!
       
-      // `pepr build` assumes /dist in project root, so... hacky c&p workarounds
+      // move module pepr.ts "out of the way" (if there is one)
+      const rootMod = `${runConf.root}/pepr.ts`
+      const rootBak = rootMod.replace('.ts', '.ts.bak')
+      if ( await fs.stat(rootMod).catch(() => {}) ) {
+        await fs.rename(rootMod, rootBak)
+      }
 
-      // make module build dir
-      await fs.rm(runConf.build, { recursive: true, force: true })
-      await fs.mkdir(runConf.build)
+      // move capability module "into the way"
+      await fs.copyFile(runConf.module, rootMod)
 
-      // copy required files to build dir
-      await fs.copyFile(`${runConf.root}/package.json`, `${runConf.build}/package.json`)
-      await fs.copyFile(`${runConf.module}`, `${runConf.build}/pepr.ts`)
+      // modify capability module source to "fit" in new location
+      let content = await fs.readFile(rootMod, "utf8")
+
+      content = content.replace(/(\.\.\/)+package.json/, "./package.json")
       
-      // read/
-      await fs.copyFile(`${runConf.capability}`, `${runConf.build}/${path.basename(runConf.capability)}`)
+      let capa = path.basename(runConf.me).replace('.test.ts', '')
+      let relPath = runConf.me.replace(runConf.root, '').replace('.test.ts', '')
+      content = content.replace(new RegExp(`./${capa}`), `.${relPath}`)
 
-      // massage file contents (due to location move)
+      await fs.writeFile(rootMod, content)
 
+      // build
+      await cp.exec(`npx pepr build`)
+
+      // move capability module "out the way"
+      await fs.rm(rootMod)
+
+      // move module pepr.ts back "into the way" (if there was one)
+      if ( await fs.stat(rootBak).catch(() => {}) ) {
+        await fs.rename(rootBak, rootMod)
+      }
 
     }, secs(10))
 
-    // it("Deploy", async () => {
-    //   // `pepr deploy` does it's own build, ugh!  Have to deploy manually (i.e. apply module .yaml!)
-    //   // await cp.exec(`npx pepr deploy --confirm`)
-    // }, secs(10))
+    it("Deploy", async () => {
+      const buildDir = `${runConf.root}/dist/`
+      const files = await fs.readdir(buildDir)
+      const file = files.filter(f => /pepr-module.*\.yaml/.test(f))[0]
+      const yaml = `${buildDir}${file}`
+      await cp.exec(`kubectl apply -f ${yaml}`)
+    }, secs(10))
 
-    // it("Startup", async () => {
-    //   await cp.exec(`kubectl rollout status deployment -n pepr-system`)
-    // }, secs(15))
+    it("Startup", async () => {
+      await cp.exec(`kubectl rollout status deployment -n pepr-system`)
+    }, secs(15))
   })
 
-  describe.skip("Scenario", () => {
+  describe("Scenario", () => {
     describe("Arrange", () => {
       it('Generate test manifests', async () => {
         await generateTestManifests(runConf)
@@ -194,7 +214,6 @@ describe("Isolated Capability Module Test", () => {
             .InNamespace(runConf.namespace)
             .Get("cm-alpha")
 
-            console.log(cm)
             const lbl = cm.metadata.labels["pepr-store-demo/touched"]
             return lbl && lbl === "true"
         }
@@ -232,4 +251,8 @@ describe("Isolated Capability Module Test", () => {
 
   //   // TODO: do something with the Store (finally!)
   // })
+})
+
+afterAll(async () => {
+  await fs.rm(runConf.lock)
 })
