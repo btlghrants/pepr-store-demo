@@ -47,8 +47,9 @@ class TestRunCfg {
         `${this.here}/${f.concat(".json")}`
       ])
     this.unique = unique
-    this.namespace = `pepr-store-demo-${unique}`
-    this.labelKey = "pepr-store-demo/test-transient"
+    this.namespace = `pepr-store-demoz-${unique}`
+    this.labelKey = "pepr-store-demoz/test-transient"
+
   }
 
   manifest(index: number): string {
@@ -205,21 +206,21 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
     })
 
     describe("Step 0", () => {
-      it("Act: create 'cm-alpha'", async () => {
+      it("Act: create 'cm-zalpha'", async () => {
         await cp.exec(`kubectl apply -f ${runConf.manifest(0)}`)
       }, secs(1))
 
-      it("Assert: 'cm-alpha' has label 'pepr-store-demo/touched=true'", async () => {
+      it("Assert: 'cm-zalpha' has label 'pepr-store-demoz/touched=true'", async () => {
         const found = async () => {
           let cm: kind.ConfigMap;
           try {
             cm = await K8s(kind.ConfigMap)
               .InNamespace(runConf.namespace)
-              .Get("cm-alpha")
+              .Get("cm-zalpha")
           }
           catch (e) { if (e.status === 404) { return false } else { throw e } }
 
-          const lbl = cm.metadata.labels["pepr-store-demo/touched"]
+          const lbl = cm.metadata.labels["pepr-store-demoz/touched"]
           return lbl && lbl === "true"
         }
         await untilTrue(found)
@@ -227,21 +228,21 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
     })
 
     describe("Step 1", () => {
-      it("Act: create 'cm-bravo'", async () => {
+      it("Act: create 'cm-zbravo'", async () => {
         await cp.exec(`kubectl apply -f ${runConf.manifest(1)}`)
       }, secs(1))
 
-      it("Assert: 'cm-bravo' has label 'pepr-store-demo/touched=true'", async () => {
+      it("Assert: 'cm-zbravo' has label 'pepr-store-demoz/touched=true'", async () => {
         const found = async () => {
           let cm: kind.ConfigMap;
           try {
             cm = await K8s(kind.ConfigMap)
               .InNamespace(runConf.namespace)
-              .Get("cm-bravo")
+              .Get("cm-zbravo")
           }
           catch (e) { if (e.status === 404) { return false } else { throw e } }
 
-          const lbl = cm.metadata.labels["pepr-store-demo/touched"]
+          const lbl = cm.metadata.labels["pepr-store-demoz/touched"]
           return lbl && lbl === "true"
         }
         await untilTrue(found)

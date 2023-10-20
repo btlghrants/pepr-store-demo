@@ -22,7 +22,7 @@ describe("sleep", () => {
 })
 
 describe("untilTrue", () => {
-  it("resolves when true", async () => {
+  it("resolves when given predicate returns true", async () => {
     let predicate = () => new Promise<boolean>(resolve => {
       setTimeout(() => resolve(true), 250)
     })
@@ -31,7 +31,7 @@ describe("untilTrue", () => {
 })
 
 describe("ms", () => {
-  it("returns the appropriate number of milliseconds", () => {
+  it("returns appropriate number of milliseconds", () => {
     const testTable = [
       [100, 100],
       [1000, 1000],
@@ -44,7 +44,7 @@ describe("ms", () => {
 })
 
 describe("secs", () => {
-  it("returns the appropriate number of milliseconds", () => {
+  it("returns appropriate number of milliseconds", () => {
     const testTable = [
       [1, 1000],
       [30, 30000],
@@ -57,7 +57,7 @@ describe("secs", () => {
 })
 
 describe("mins", () => {
-  it("returns the appropriate number of milliseconds", () => {
+  it("returns appropriate number of milliseconds", () => {
     const testTable = [
       [1, 60000],
       [2, 120000],
@@ -76,7 +76,7 @@ describe("waitLock", () => {
     workdir = await fs.mkdtemp(`${os.tmpdir()}/waitLock-`)
   })
 
-  it("immediate claim when free", async () => {
+  it("immediate claim", async () => {
     const lockfile = `${workdir}/lock.txt`
     const myUnique = `/example/unique/value`
 
@@ -86,7 +86,7 @@ describe("waitLock", () => {
     expect(await fs.readFile(lockfile, "utf8")).toBe(myUnique)
   }, secs(1))
 
-  it("wait and claim when free", async () => {
+  it("wait and claim", async () => {
     const lockfile = `${workdir}/lock.txt`
     const myUnique = `/example/unique/value`
     await fs.writeFile(lockfile, '/not/the/right/value')
@@ -96,7 +96,6 @@ describe("waitLock", () => {
 
     expect(fs.stat(lockfile)).resolves.toBeTruthy()
     expect(await fs.readFile(lockfile, "utf8")).toBe(myUnique)
-    console.log(await fs.readFile(lockfile, "utf8"))
   }, secs(2))
 
   afterEach(async () => {
