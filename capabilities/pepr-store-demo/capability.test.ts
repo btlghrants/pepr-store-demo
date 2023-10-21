@@ -9,53 +9,11 @@ const cp = {
 }
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { readdirSync } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
+import { TestRunCfg } from '../helpers/TestRunCfg';
 
-class TestRunCfg {
-  me: string;
-  name: string;
-  here: string;
-  root: string;
-  lock: string;
-  module: string;
-  manifests: [string, string][];
-  unique: string;
-  namespace: string;
-  labelKey: string;
-
-  constructor(unique: string = new Date().valueOf().toString()) {
-    this.me = __filename
-    this.name = path.basename(this.me).replace('.test.ts', '')
-    this.here = __dirname
-    this.root = process.cwd()
-    this.lock = `${this.root}/cluster.lock`
-    this.module = `${this.me.replace('.test', '.pepr')}`
-    this.manifests = readdirSync(this.here)
-      .filter(f => new RegExp(`^${this.name}\..*`).test(f))
-      .filter(f => /\.test\.\d+\.yaml$/.test(f))
-      .sort((l, r) => {
-        let lnum = parseInt(l.match(/test\.(\d+)\.yaml/)[1])
-        let rnum = parseInt(r.match(/test\.(\d+)\.yaml/)[1])
-        return lnum === rnum
-          ? 0
-          : lnum < rnum ? -1 : 1
-      })
-      .map(f => [
-        `${this.here}/${f}`,
-        `${this.here}/${f.concat(".json")}`
-      ])
-    this.unique = unique
-    this.namespace = `pepr-store-demo-${unique}`
-    this.labelKey = "pepr-store-demo/test-transient"
-  }
-
-  manifest(index: number): string {
-    return this.manifests[index][1]
-  }
-}
-const runConf = new TestRunCfg()
+const runConf = new TestRunCfg(__filename)
 
 async function cleanCluster(trc: TestRunCfg): Promise<void> {
   const nsList = await K8s(kind.Namespace).Get()
@@ -137,13 +95,8 @@ beforeAll(async () => {
 describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Cluster", () => {
-    it("Clean", async () => {
-      await cleanCluster(runConf)
-    }, mins(1))
-
-    it("Prepare", async () => {
-      await setupCluster(runConf)
-    }, secs(1))
+    it("Clean", async () => await cleanCluster(runConf), mins(1))
+    it("Prepare", async () => await setupCluster(runConf), secs(1))
   })
 
   describe("Module", () => {
@@ -268,6 +221,4 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
   // })
 })
 
-afterAll(async () => {
-  await fs.rm(runConf.lock)
-})
+afterAll(async () => await fs.rm(runConf.lock))

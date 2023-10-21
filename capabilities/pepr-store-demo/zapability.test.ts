@@ -9,54 +9,11 @@ const cp = {
 }
 import * as path from 'path';
 import { promises as fs } from 'fs';
-import { readdirSync } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
+import { TestRunCfg } from '../helpers/TestRunCfg';
 
-class TestRunCfg {
-  me: string;
-  name: string;
-  here: string;
-  root: string;
-  lock: string;
-  module: string;
-  manifests: [string, string][];
-  unique: string;
-  namespace: string;
-  labelKey: string;
-
-  constructor(unique: string = new Date().valueOf().toString()) {
-    this.me = __filename
-    this.name = path.basename(this.me).replace('.test.ts', '')
-    this.here = __dirname
-    this.root = process.cwd()
-    this.lock = `${this.root}/cluster.lock`
-    this.module = `${this.me.replace('.test', '.pepr')}`
-    this.manifests = readdirSync(this.here)
-      .filter(f => new RegExp(`^${this.name}\..*`).test(f))
-      .filter(f => /\.test\.\d+\.yaml$/.test(f))
-      .sort((l, r) => {
-        let lnum = parseInt(l.match(/test\.(\d+)\.yaml/)[1])
-        let rnum = parseInt(r.match(/test\.(\d+)\.yaml/)[1])
-        return lnum === rnum
-          ? 0
-          : lnum < rnum ? -1 : 1
-      })
-      .map(f => [
-        `${this.here}/${f}`,
-        `${this.here}/${f.concat(".json")}`
-      ])
-    this.unique = unique
-    this.namespace = `pepr-store-demoz-${unique}`
-    this.labelKey = "pepr-store-demoz/test-transient"
-
-  }
-
-  manifest(index: number): string {
-    return this.manifests[index][1]
-  }
-}
-const runConf = new TestRunCfg()
+const runConf = new TestRunCfg(__filename)
 
 async function cleanCluster(trc: TestRunCfg): Promise<void> {
   const nsList = await K8s(kind.Namespace).Get()
@@ -138,13 +95,8 @@ beforeAll(async () => {
 describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Cluster", () => {
-    it("Clean", async () => {
-      await cleanCluster(runConf)
-    }, mins(1))
-
-    it("Prepare", async () => {
-      await setupCluster(runConf)
-    }, secs(1))
+    it("Clean", async () => await cleanCluster(runConf), mins(1))
+    it("Prepare", async () => await setupCluster(runConf), secs(1))
   })
 
   describe("Module", () => {
@@ -250,25 +202,6 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
     })
 
   })
-
-  // describe("Assert", () => {
-  //   it("sees a 'pepr-store-demo/touched=true' label on 'cm-alpha'", async () => {
-  //     // wait for success conditions!
-  //   }, secs(30))
-
-  //   it("sees a '' label on 'cm-alpha'", async () => {
-  //     // wait for success conditions!
-  //   }, mins(1))
-
-  //   // TODO: add an update / delete test... which will mean update/delete.test.yaml
-  //   //  files & running them in order, etc.
-
-  //   // TODO: assert on some hook log
-
-  //   // TODO: do something with the Store (finally!)
-  // })
 })
 
-afterAll(async () => {
-  await fs.rm(runConf.lock)
-})
+afterAll(async () => await fs.rm(runConf.lock))

@@ -1,9 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2023-Present The Pepr Authors
 
-import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
-import { ms, secs, mins, sleep, untilTrue, waitLock } from "../helpers/helpers";
-import { promises as fs } from 'fs';
+import {
+  beforeAll, afterAll,
+  afterEach, beforeEach,
+  describe, expect, it
+} from '@jest/globals';
+import {
+  ms, secs, mins,
+  sleep, untilTrue, waitLock,
+  nearestAncestor
+} from "../helpers/helpers";
+import { promises as pfs } from 'fs';
 import * as os from 'os';
 
 describe("sleep", () => {
@@ -73,7 +81,7 @@ describe("waitLock", () => {
   let workdir: string;
 
   beforeEach(async () => {
-    workdir = await fs.mkdtemp(`${os.tmpdir()}/waitLock-`)
+    workdir = await pfs.mkdtemp(`${os.tmpdir()}/waitLock-`)
   })
 
   it("immediate claim", async () => {
@@ -82,23 +90,54 @@ describe("waitLock", () => {
 
     await waitLock(lockfile, myUnique)
 
-    expect(fs.stat(lockfile)).resolves.toBeTruthy()
-    expect(await fs.readFile(lockfile, "utf8")).toBe(myUnique)
+    expect(pfs.stat(lockfile)).resolves.toBeTruthy()
+    expect(await pfs.readFile(lockfile, "utf8")).toBe(myUnique)
   }, secs(1))
 
   it("wait and claim", async () => {
     const lockfile = `${workdir}/lock.txt`
     const myUnique = `/example/unique/value`
-    await fs.writeFile(lockfile, '/not/the/right/value')
-    setTimeout(async () => fs.rm(lockfile), ms(100))
+    await pfs.writeFile(lockfile, '/not/the/right/value')
+    setTimeout(async () => pfs.rm(lockfile), ms(100))
 
     await waitLock(lockfile, myUnique)
 
-    expect(fs.stat(lockfile)).resolves.toBeTruthy()
-    expect(await fs.readFile(lockfile, "utf8")).toBe(myUnique)
+    expect(pfs.stat(lockfile)).resolves.toBeTruthy()
+    expect(await pfs.readFile(lockfile, "utf8")).toBe(myUnique)
   }, secs(2))
 
   afterEach(async () => {
-    await fs.rm(workdir, { recursive: true, force: true })
+    await pfs.rm(workdir, { recursive: true, force: true })
+  })
+})
+
+describe("nearestAncestor", () => {
+  let rootdir: string
+  let filename: string
+  let ancestor: string
+  let workdir: string
+
+  beforeAll(async () => {
+    rootdir = await pfs.mkdtemp(`${os.tmpdir()}/nearestAncestor-`)
+    filename = "package.json"
+    ancestor = `${rootdir}/${filename}`
+    workdir = `${rootdir}/a/b/c/work`
+
+    await pfs.writeFile(ancestor, '{"fake":"package.json"}')
+    await pfs.mkdir(workdir, { recursive: true })
+  })
+
+  it("synchronously returns path of first ancenstor with given name", () => {
+    const found = nearestAncestor(filename, workdir)
+    expect(found).toBe(ancestor)
+  })
+
+  it("throws when ancestor can't be found", () => {
+    const notFound = () => nearestAncestor("missing.txt", workdir)
+    expect(notFound).toThrow()
+  })
+
+  afterAll(async () => {
+    await pfs.rm(rootdir, { recursive: true, force: true })
   })
 })

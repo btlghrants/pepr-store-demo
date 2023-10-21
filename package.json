@@ -24,7 +24,7 @@
   "scripts": {
     "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0'",
     "pretest": "rm -f ./cluster.lock",
-    "test": "jest --verbose",
+    "test": "jest --verbose --forceExit",
 
     "dev:build": "npx pepr build",
     "dev:uuid": "cat package.json | jq -r '.pepr.uuid'",

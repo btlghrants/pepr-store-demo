@@ -22,6 +22,11 @@ Module Root
 
 # TODOs
 
+- Refactor
+  - Extract cleanCluster
+  - Extract setupCluster
+  - Extract generateTestManifests
+
 - test wiring for Pepr Modules..?
   - As a Capability Developer
     I want new Modules to come with test wiring

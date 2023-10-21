@@ -78,7 +78,7 @@ describe("TestRunCfg", () => {
 
   it("exposes a capability-and-run-specific namespace", () => {
     const unique = "i-am-so-special"
-    const ns = `${path.dirname(root)}-${name}-${unique}`
+    const ns = `${path.basename(here)}-${name}-${unique}`
     const trc = new TestRunCfg(me, unique)
     expect(trc.namespace).toBe(ns)
   })

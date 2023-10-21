@@ -23,7 +23,7 @@ export class TestRunCfg {
     this.lock = `${this.root}/cluster.lock`
     this.module = `${this.me.replace('.test', '.pepr')}`
     this.unique = unique
-    this.namespace = `${path.dirname(this.root)}-${this.name}-${unique}`
+    this.namespace = `${path.basename(this.here)}-${this.name}-${unique}`
     this.labelKey = `${this.name}/test-transient`
     this.manifests = fs.readdirSync(this.here)
       .filter(f => new RegExp(`^${this.name}\..*`).test(f))
@@ -41,12 +41,6 @@ export class TestRunCfg {
       ])
   }
 
-  // manifest(index: string): string {
-  //   return this.manifests
-  //     .map(m => m[1])
-  //     .filter(f => new RegExp(`.*\.${index}\.yaml.json`).test(f))
-  //     [0]
-  // }
   manifest(index: number): string {
     return this.manifests
       .map(m => m[1])
