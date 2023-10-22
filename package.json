@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0'",
+    "k3d-setup": "k3d cluster delete pepr-dev && k3d cluster create pepr-dev --k3s-arg '--debug@server:0' && kubectl rollout status deployment -n kube-system",
     "pretest": "rm -f ./cluster.lock",
     "test": "jest --verbose --forceExit",
 
