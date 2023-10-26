@@ -1,6 +1,3 @@
-import * as path from 'path';
-import * as fs from 'fs';
-import { promises as pfs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { TestRunCfg } from './TestRunCfg';
 import { untilTrue } from "./helpers";
