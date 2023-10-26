@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { nearestAncestor } from './helpers'
-// import { promises as pfs } from 'fs';
 
 export class TestRunCfg {
   me: string;
