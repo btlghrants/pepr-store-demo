@@ -23,9 +23,9 @@ Module Root
 # TODOs
 
 - Refactor
-  - Extract cleanCluster
   - Extract setupCluster
   - Extract generateTestManifests
+  - replace calls in (c|z)apability.test.ts & run tests!
 
 - test wiring for Pepr Modules..?
   - As a Capability Developer

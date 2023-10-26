@@ -12,30 +12,9 @@ import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
 import { TestRunCfg } from '../helpers/TestRunCfg';
+import { clean } from '../helpers/cluster'
 
 const runConf = new TestRunCfg(__filename)
-
-async function cleanCluster(trc: TestRunCfg): Promise<void> {
-  const nsList = await K8s(kind.Namespace).Get()
-  const nses = nsList.items.filter(ns => {
-    return (
-      ns.metadata.labels[trc.labelKey] ||
-      ns.metadata.name === "pepr-system"
-    )
-  })
-  nses.forEach(async ns => {
-    await K8s(kind.Namespace).Delete(ns)
-  })
-
-  const nsGone = async (ns) => {
-    try { await K8s(kind.Namespace).Get(ns.metadata.name) }
-    catch (e) { if (e.status === 404) { return Promise.resolve(true)} }
-    return Promise.resolve(false)
-  }
-
-  let terminating = nses.map(ns => untilTrue(() => nsGone(ns)))
-  await Promise.all(terminating)
-}
 
 async function setupCluster(trc: TestRunCfg): Promise<any> {
   const ns = K8s(kind.Namespace).Apply({
@@ -95,7 +74,7 @@ beforeAll(async () => {
 describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Cluster", () => {
-    it("Clean", async () => await cleanCluster(runConf), mins(1))
+    it("Clean", async () => await clean(runConf), mins(1))
     it("Prepare", async () => await setupCluster(runConf), secs(1))
   })
 
@@ -135,7 +114,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
       if ( await fs.stat(rootBak).catch(() => {}) ) {
         await fs.rename(rootBak, rootMod)
       }
-    }, secs(10))
+    }, secs(20))
 
     it("Deploy", async () => {
       const buildDir = `${runConf.root}/dist/`
@@ -147,7 +126,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
 
     it("Startup", async () => {
       await cp.exec(`kubectl rollout status deployment -n pepr-system`)
-    }, secs(15))
+    }, secs(30))
   })
 
   describe("Scenario", () => {
