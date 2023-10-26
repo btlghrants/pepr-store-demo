@@ -49,7 +49,7 @@ describe("clean()", () => {
           labels: { notTrcLabelKey: "whatever" }
         }
       }
-      
+
       let Get = jest.fn()
       Get.mockImplementationOnce(() => Promise.resolve({ items: [ ns ] }))
       Get.mockImplementationOnce(() => Promise.resolve(ns))
@@ -81,7 +81,7 @@ describe("clean()", () => {
           labels: { [trc.labelKey]: "whatever" }
         }
       }
-      
+
       let Get = jest.fn()
       Get.mockImplementationOnce(() => Promise.resolve({ items: [ ns ] }))
       Get.mockImplementationOnce(() => Promise.resolve(ns))
