@@ -13,7 +13,7 @@ import {
 } from "./helpers";
 // import { promises as pfs } from 'fs';
 // import * as os from 'os';
-import { clean } from './cluster'
+import { clean, setup } from './cluster'
 import { TestRunCfg } from './TestRunCfg';
 
 import { K8sInit, Filters } from "kubernetes-fluent-client/dist/fluent/types";
@@ -43,7 +43,7 @@ describe("clean()", () => {
 
   describe("removes 'pepr-system' namespace", () => {
     it("tells collaborator to delete & polls until gone", async () => {
-      let ns = {
+      const ns = {
         metadata: {
           name: "pepr-system",
           labels: { notTrcLabelKey: "whatever" }
@@ -70,13 +70,12 @@ describe("clean()", () => {
 
       expect(K8s).toHaveBeenNthCalledWith(4, kind.Namespace)
       expect(Get).toHaveBeenNthCalledWith(3, ns.metadata.name)
-
     }, secs(2))
   })
 
   describe("removes namespaces with TestRunCfg-defined label", () => {
     it("tells collaborator to delete & polls until gone", async () => {
-      let ns = {
+      const ns = {
         metadata: {
           name: "not-pepr-system",
           labels: { [trc.labelKey]: "whatever" }
@@ -103,7 +102,29 @@ describe("clean()", () => {
 
       expect(K8s).toHaveBeenNthCalledWith(4, kind.Namespace)
       expect(Get).toHaveBeenNthCalledWith(3, ns.metadata.name)
+    }, secs(2))
+  })
+})
 
+describe("setup()", () => {
+  const trc = { labelKey: "lk", namespace: "ns", unique: "uq" } as TestRunCfg
+
+  describe("adds test isolation namespace", () => {
+    it("tells collaborator to add namespace & returns result", async () => {
+      const ns = {
+        metadata: {
+          name: trc.namespace,
+          labels: { [trc.labelKey]: trc.unique }
+        }
+      }
+
+      let Apply = jest.fn(() => { Promise.resolve(ns) })
+      let K8s = mockK8s({Apply})
+
+      await setup(trc)
+
+      expect(K8s).toHaveBeenNthCalledWith(1, kind.Namespace)
+      expect(Apply).toHaveBeenNthCalledWith(1, ns)
     }, secs(2))
   })
 })

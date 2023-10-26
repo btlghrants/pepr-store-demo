@@ -26,3 +26,17 @@ export async function clean(trc: TestRunCfg): Promise<void> {
   let terminating = nses.map(ns => untilTrue(() => nsGone(ns)))
   await Promise.all(terminating)
 }
+
+export async function setup(trc: TestRunCfg) {
+  const ns = K8s(kind.Namespace).Apply({
+    metadata: {
+      name: trc.namespace,
+      labels: {
+        [trc.labelKey]: trc.unique
+      }
+    }
+  })
+  return Promise.all([
+    ns
+  ])
+}

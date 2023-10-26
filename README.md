@@ -23,8 +23,10 @@ Module Root
 # TODOs
 
 - Refactor
-  - Extract setupCluster
   - Extract generateTestManifests
+  - Make Module > Build test reusable
+    - extract logic into function
+    - add tests
   - replace calls in (c|z)apability.test.ts & run tests!
 
 - test wiring for Pepr Modules..?

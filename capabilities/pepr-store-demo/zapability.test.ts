@@ -12,21 +12,9 @@ import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
 import { TestRunCfg } from '../helpers/TestRunCfg';
-import { clean } from '../helpers/cluster'
+import { clean, setup } from '../helpers/cluster'
 
 const runConf = new TestRunCfg(__filename)
-
-async function setupCluster(trc: TestRunCfg) {
-  const ns = K8s(kind.Namespace).Apply({
-    metadata: {
-      name: trc.namespace,
-      labels: {
-        [trc.labelKey]: trc.unique
-      }
-    }
-  })
-  return Promise.all([ns])
-}
 
 async function generateTestManifests(trc: TestRunCfg) {
   for (let [yaml, json] of trc.manifests) {
@@ -75,7 +63,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Cluster", () => {
     it("Clean", async () => await clean(runConf), mins(1))
-    it("Prepare", async () => await setupCluster(runConf), secs(1))
+    it("Prepare", async () => await setup(runConf), secs(1))
   })
 
   describe("Module", () => {
