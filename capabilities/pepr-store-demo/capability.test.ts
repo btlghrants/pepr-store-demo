@@ -16,7 +16,7 @@ import { clean } from '../helpers/cluster'
 
 const runConf = new TestRunCfg(__filename)
 
-async function setupCluster(trc: TestRunCfg): Promise<any> {
+async function setupCluster(trc: TestRunCfg) {
   const ns = K8s(kind.Namespace).Apply({
     metadata: {
       name: trc.namespace,
