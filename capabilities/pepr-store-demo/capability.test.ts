@@ -16,7 +16,7 @@ import { clean, setup } from '../helpers/cluster'
 
 const runConf = new TestRunCfg(__filename)
 
-async function generateTestManifests(trc: TestRunCfg) {
+async function synthesizeManifests(trc: TestRunCfg) {
   for (let [yaml, json] of trc.manifests) {
 
     // convert yaml manifest to json
@@ -120,7 +120,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
   describe("Scenario", () => {
     describe("Arrange", () => {
       it('Generate test manifests', async () => {
-        await generateTestManifests(runConf)
+        await synthesizeManifests(runConf)
       }, secs(2))
     })
 
