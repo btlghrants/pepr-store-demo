@@ -1,30 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2023-Present The Pepr Authors
 
-import { describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { secs } from "./helpers";
 import { clean, setup } from './cluster'
 import { TestRunCfg } from './TestRunCfg';
-import { K8sInit, Filters } from "kubernetes-fluent-client/dist/fluent/types";
-import { K8s, KubernetesObject, GenericClass, kind} from "kubernetes-fluent-client"
-jest.mock("kubernetes-fluent-client")
+
+import * as kfc from 'kubernetes-fluent-client';
+jest.spyOn(kfc, "K8s").mockImplementation(
+  jest.fn() as jest.Mocked<typeof kfc.K8s>
+)
+const { kind } = kfc
+const { K8s } = jest.mocked(kfc)
+
+beforeEach(() => { K8s.mockClear() })
 
 function mockK8s(members = {}) {
-  const mockK8s = jest.mocked(K8s)
-
-  const implK8s = <
-    T extends GenericClass,
-    K extends KubernetesObject = InstanceType<T>
-  > (
-    model: T,
-    filters?: Filters
-  ) :
-    K8sInit<K> =>
-  {
-    return { ... members } as unknown as K8sInit<K>
-  }
-
-  return mockK8s.mockImplementation(implK8s)
+  return K8s.mockImplementation((() => members ) as unknown as typeof K8s)
 }
 
 describe("clean()", () => {
@@ -35,7 +27,7 @@ describe("clean()", () => {
       const ns = {
         metadata: {
           name: "pepr-system",
-          labels: { notTrcLabelKey: "whatever" }
+          labels: { itsLike: "whatever" }
         }
       }
 
