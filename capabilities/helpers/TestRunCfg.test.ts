@@ -7,7 +7,7 @@ import { TestRunCfg, synthesizeManifests } from "./TestRunCfg";
 
 import * as helpers from './helpers';
 jest.spyOn(helpers, "nearestAncestor").mockImplementation(
-  jest.fn() as jest.Mocked<typeof helpers.nearestAncestor>
+  jest.fn() as typeof helpers.nearestAncestor
 )
 const { secs } = helpers
 const { nearestAncestor } = jest.mocked(helpers)

@@ -8,7 +8,7 @@ import { TestRunCfg } from './TestRunCfg';
 
 import * as kfc from 'kubernetes-fluent-client';
 jest.spyOn(kfc, "K8s").mockImplementation(
-  jest.fn() as jest.Mocked<typeof kfc.K8s>
+  jest.fn() as typeof kfc.K8s
 )
 const { kind } = kfc
 const { K8s } = jest.mocked(kfc)
