@@ -99,7 +99,7 @@ describe("setup()", () => {
         }
       }
 
-      let Apply = jest.fn(() => { Promise.resolve(ns) })
+      let Apply = jest.fn(() => Promise.resolve(ns) )
       let K8s = mockK8s({Apply})
 
       await setup(trc)
