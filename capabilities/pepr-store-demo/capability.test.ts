@@ -11,46 +11,10 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
-import { TestRunCfg } from '../helpers/TestRunCfg';
+import { synthesizeManifests, TestRunCfg } from '../helpers/TestRunCfg';
 import { clean, setup } from '../helpers/cluster'
 
 const runConf = new TestRunCfg(__filename)
-
-async function synthesizeManifests(trc: TestRunCfg) {
-  for (let [yaml, json] of trc.manifests) {
-
-    // convert yaml manifest to json
-    let {stdout} = await cp.exec(
-      `kubectl apply -f ${yaml} --dry-run=client --output json`
-    )
-
-    // convert json into array of one-or-more js objects
-    // see: https://kubernetes.io/docs/reference/using-api/api-concepts/#collections
-    let raw = JSON.parse(stdout)
-    let resources = (raw.kind === "List" ? raw.items : [ raw ])
-
-    // strip rando fields added by kubectl --dry-run
-    resources = resources.map(res => {
-      delete res.metadata.annotations
-      delete res.metadata.namespace
-      return res
-    })
-
-    // add test-required fields
-    resources = resources.map(res => {
-      res.metadata.namespace = trc.namespace
-      res.metadata.labels = {...res.metadata.labels, [trc.labelKey]: trc.unique }
-      return res
-    })
-
-    // re-add client-side (kubectl) `kind: "List"` wrapping
-    resources = {"kind": "List", apiVersion: "v1", "items": resources}
-    const ready = JSON.stringify(resources, null, 2)
-  
-    // write to file
-    await fs.writeFile(json, ready, "utf8")
-  }
-}
 
 beforeAll(async () => {
   // Jest runs test files in parallel but we can't guarantee that capabilities
@@ -119,7 +83,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Scenario", () => {
     describe("Arrange", () => {
-      it('Generate test manifests', async () => {
+      it('Synthesize test manifests', async () => {
         await synthesizeManifests(runConf)
       }, secs(2))
     })
