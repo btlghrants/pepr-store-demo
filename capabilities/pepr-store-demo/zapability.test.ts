@@ -4,14 +4,13 @@
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import * as util from 'util';
 import * as child_process from 'child_process';
-const cp = {
-  exec: util.promisify(child_process.exec)
-}
+const exec = util.promisify(child_process.exec)
 import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
-import { synthesizeManifests, TestRunCfg } from '../helpers/TestRunCfg';
-import { buildCapabilityModule, clean, setup } from '../helpers/cluster'
+import { TestRunCfg } from '../helpers/TestRunCfg';
+import { clean, setup } from '../helpers/cluster'
+import { build, deploy, ready, synthesizeManifests } from '../helpers/module';
 
 const runConf = new TestRunCfg(__filename)
 
@@ -25,26 +24,27 @@ beforeAll(async () => {
 describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Cluster", () => {
-    it("Clean", async () => await clean(runConf), mins(1))
-    it("Prepare", async () => await setup(runConf), secs(1))
+    it("Clean", async () => {
+      await clean(runConf)
+    }, mins(1))
+    it("Prepare", async () => {
+      await setup(runConf)
+    }, secs(1))
   })
 
   describe("Module", () => {
     let buildDir: string
 
     it("Build", async () => {
-      buildDir = await buildCapabilityModule(runConf)
+      buildDir = await build(runConf)
     }, secs(20))
 
     it("Deploy", async () => {
-      const files = await fs.readdir(buildDir)
-      const file = files.filter(f => /pepr-module.*\.yaml/.test(f))[0]
-      const yaml = `${buildDir}/${file}`
-      await cp.exec(`kubectl apply -f ${yaml}`)
+      await deploy(buildDir)
     }, secs(10))
 
     it("Startup", async () => {
-      await cp.exec(`kubectl rollout status deployment -n pepr-system`)
+      await ready()
     }, secs(30))
   })
 
@@ -57,7 +57,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
 
     describe("Step 0", () => {
       it("Act: create 'cm-zalpha'", async () => {
-        await cp.exec(`kubectl apply -f ${runConf.manifest(0)}`)
+        await exec(`kubectl apply -f ${runConf.manifest(0)}`)
       }, secs(1))
 
       it("Assert: 'cm-zalpha' has label 'pepr-store-demoz/touched=true'", async () => {
@@ -79,7 +79,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
 
     describe("Step 1", () => {
       it("Act: create 'cm-zbravo'", async () => {
-        await cp.exec(`kubectl apply -f ${runConf.manifest(1)}`)
+        await exec(`kubectl apply -f ${runConf.manifest(1)}`)
       }, secs(1))
 
       it("Assert: 'cm-zbravo' has label 'pepr-store-demoz/touched=true'", async () => {

@@ -1,14 +1,10 @@
-import { Log, PeprModule } from "pepr";
+import { PeprModule } from "pepr";
 import cfg from "./package.json";
 
-import { PeprStoreDemo } from "./capabilities/pepr-store-demo/capability";
+import { PeprStoreDemo } from "./capabilities/pepr-store-demo/zapability";
 
-new PeprModule(cfg, [PeprStoreDemo], {
-  deferStart: false,
-  beforeHook: req => {
-    Log.info(`  --> beforeHook: ${req.kind}/${req.name}`);
-  },
-  afterHook: res => {
-    Log.info(`  --> afterHook: ${JSON.stringify(res)}`);
-  },
-});
+// grab JSON.stringified config from env
+// destringify config
+// deepmerge config over default config
+
+new PeprModule(cfg, [PeprStoreDemo]);
