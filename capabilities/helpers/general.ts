@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { promises as pfs } from 'fs';
+import * as pfs from 'fs/promises';
 
 export function sleep(seconds: number): Promise<void> {
   return new Promise(res => setTimeout(res, secs(1)));

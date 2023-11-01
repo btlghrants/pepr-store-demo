@@ -1,10 +1,3 @@
-import * as util from 'util';
-import * as child_process from 'child_process';
-const cp = {
-  exec: util.promisify(child_process.exec)
-}
-import * as path from 'path';
-import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { TestRunCfg } from './TestRunCfg';
 import { untilTrue } from "./general";

@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import * as util from 'util';
 import * as child_process from 'child_process';
 const exec = util.promisify(child_process.exec)
-import { promises as fs } from 'fs';
+import * as pfs from 'fs/promises';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/general";
 import { TestRunCfg } from '../helpers/TestRunCfg';
@@ -89,4 +89,4 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
   })
 })
 
-afterAll(async () => await fs.rm(runConf.lockfile()))
+afterAll(async () => await pfs.rm(runConf.lockfile()))

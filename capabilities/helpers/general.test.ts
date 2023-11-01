@@ -11,7 +11,7 @@ import {
   sleep, untilTrue, waitLock,
   nearestAncestor
 } from "./general";
-import { promises as pfs } from 'fs';
+import * as pfs from 'fs/promises';
 import * as os from 'os';
 
 describe("sleep", () => {
