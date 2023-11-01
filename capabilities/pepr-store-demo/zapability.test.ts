@@ -19,7 +19,7 @@ beforeAll(async () => {
   // Jest runs test files in parallel but we can't guarantee that capabilities
   // will only touch non-global cluster resources, so... we're serializing 
   // cluster access/ownership with a file-based lock
-  await waitLock(runConf.lock, `${runConf.me}:${runConf.unique}`)
+  await waitLock(runConf.lock(), `${runConf.me}:${runConf.unique}`)
 }, mins(10))
 
 describe(`Capability Module Test: ${runConf.me}`, () => {
@@ -65,7 +65,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
           let cm: kind.ConfigMap;
           try {
             cm = await K8s(kind.ConfigMap)
-              .InNamespace(runConf.namespace)
+              .InNamespace(runConf.namespace())
               .Get("cm-zalpha")
           }
           catch (e) { if (e.status === 404) { return false } else { throw e } }
@@ -87,7 +87,7 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
           let cm: kind.ConfigMap;
           try {
             cm = await K8s(kind.ConfigMap)
-              .InNamespace(runConf.namespace)
+              .InNamespace(runConf.namespace())
               .Get("cm-zbravo")
           }
           catch (e) { if (e.status === 404) { return false } else { throw e } }
@@ -102,4 +102,4 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
   })
 })
 
-afterAll(async () => await fs.rm(runConf.lock))
+afterAll(async () => await fs.rm(runConf.lock()))

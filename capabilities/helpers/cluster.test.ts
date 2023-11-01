@@ -13,14 +13,14 @@ jest.spyOn(kfc, "K8s").mockImplementation(
 const { kind } = kfc
 const { K8s } = jest.mocked(kfc)
 
-beforeEach(() => { K8s.mockClear() })
-
 function mockK8s(members = {}) {
   return K8s.mockImplementation((() => members ) as unknown as typeof K8s)
 }
 
+beforeEach(() => { K8s.mockClear() })
+
 describe("clean()", () => {
-  const trc = { labelKey: "lk" } as TestRunCfg
+  const trc = { labelKey: () => "lk" } as TestRunCfg
 
   describe("removes 'pepr-system' namespace", () => {
     it("tells collaborator to delete & polls until gone", async () => {
@@ -59,7 +59,7 @@ describe("clean()", () => {
       const ns = {
         metadata: {
           name: "not-pepr-system",
-          labels: { [trc.labelKey]: "whatever" }
+          labels: { [trc.labelKey()]: "whatever" }
         }
       }
 
@@ -88,14 +88,14 @@ describe("clean()", () => {
 })
 
 describe("setup()", () => {
-  const trc = { labelKey: "lk", namespace: "ns", unique: "uq" } as TestRunCfg
+  const trc = { labelKey: () => "lk", namespace: () => "ns", unique: "uq" } as TestRunCfg
 
   describe("adds test isolation namespace", () => {
     it("tells collaborator to add namespace & returns result", async () => {
       const ns = {
         metadata: {
-          name: trc.namespace,
-          labels: { [trc.labelKey]: trc.unique }
+          name: trc.namespace(),
+          labels: { [trc.labelKey()]: trc.unique }
         }
       }
 

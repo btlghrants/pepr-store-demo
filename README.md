@@ -23,11 +23,6 @@ Module Root
 # TODOs
 
 - Refactor
-  - refactor TestRunCfg to...
-    - be simpler to use!
-    - getters / setters for computed props
-      - ability to NOT have to call nearestAncestor (unless needed)
-      - simple, synchronous stuff ONLY in the constructor; move async to methods!
   - final review & refactor to normalize mock patterns
     - TestRunCfg has some nice patterns for whole-module mocks & partial module mocks (w/ spyOn())
     - formalize / document folder structure for <root>/capabilities/<named-set>/capability.*.ts
