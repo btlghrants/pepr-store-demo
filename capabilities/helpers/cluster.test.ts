@@ -109,3 +109,9 @@ describe("setup()", () => {
     }, secs(2))
   })
 })
+
+describe.skip("buildCapabilityModule()", () => {
+  it("is going to be obsolete soon (once the --output-dir flag is released!)", () => {
+    expect("TODO").toBe("DONE")
+  })
+})

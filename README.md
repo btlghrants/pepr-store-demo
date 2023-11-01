@@ -23,17 +23,16 @@ Module Root
 # TODOs
 
 - Refactor
-  - Make Module > Build test reusable
-    - extract logic into function
-    - add tests
-  - replace calls in (c|z)apability.test.ts & run tests!
   - refactor TestRunCfg to...
     - be simpler to use!
     - getters / setters for computed props
       - ability to NOT have to call nearestAncestor (unless needed)
-  - refactor cluster.test.ts to take advantage of TS's typeof operator on implK8s!
+      - simple, synchronous stuff ONLY in the constructor; move async to methods!
   - final review & refactor to normalize mock patterns
     - TestRunCfg has some nice patterns for whole-module mocks & partial module mocks (w/ spyOn())
+    - formalize / document folder structure for <root>/capabilities/<named-set>/capability.*.ts
+      - make test helpers that define/assume this sort of layout
+        - make them easy to read/grok/use
 
 - test wiring for Pepr Modules..?
   - As a Capability Developer

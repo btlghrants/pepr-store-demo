@@ -7,12 +7,11 @@ import * as child_process from 'child_process';
 const cp = {
   exec: util.promisify(child_process.exec)
 }
-import * as path from 'path';
 import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
 import { synthesizeManifests, TestRunCfg } from '../helpers/TestRunCfg';
-import { clean, setup } from '../helpers/cluster'
+import { buildCapabilityModule, clean, setup } from '../helpers/cluster'
 
 const runConf = new TestRunCfg(__filename)
 
@@ -31,48 +30,16 @@ describe(`Capability Module Test: ${runConf.me}`, () => {
   })
 
   describe("Module", () => {
+    let buildDir: string
+
     it("Build", async () => {
-      // `pepr build` requires /dist be in project root... hence, all of this ⮧
-      // TODO: add a `pepr build --outdir` flag!
-      
-      // move module pepr.ts "out of the way" (if there is one)
-      const rootMod = `${runConf.root}/pepr.ts`
-      const rootBak = rootMod.replace('.ts', '.ts.bak')
-      if ( await fs.stat(rootMod).catch(() => {}) ) {
-        await fs.rename(rootMod, rootBak)
-      }
-
-      // move capability module "into the way"
-      await fs.copyFile(runConf.module, rootMod)
-
-      // modify capability module source to "fit" in new location
-      let content = await fs.readFile(rootMod, "utf8")
-
-      content = content.replace(/(\.\.\/)+package.json/, "./package.json")
-      
-      let capa = path.basename(runConf.me).replace('.test.ts', '')
-      let relPath = runConf.me.replace(runConf.root, '').replace('.test.ts', '')
-      content = content.replace(new RegExp(`./${capa}`), `.${relPath}`)
-
-      await fs.writeFile(rootMod, content)
-
-      // build
-      await cp.exec(`npx pepr build`)
-
-      // move capability module "out the way"
-      await fs.rm(rootMod)
-
-      // move module pepr.ts back "into the way" (if there was one)
-      if ( await fs.stat(rootBak).catch(() => {}) ) {
-        await fs.rename(rootBak, rootMod)
-      }
+      buildDir = await buildCapabilityModule(runConf)
     }, secs(20))
 
     it("Deploy", async () => {
-      const buildDir = `${runConf.root}/dist/`
       const files = await fs.readdir(buildDir)
       const file = files.filter(f => /pepr-module.*\.yaml/.test(f))[0]
-      const yaml = `${buildDir}${file}`
+      const yaml = `${buildDir}/${file}`
       await cp.exec(`kubectl apply -f ${yaml}`)
     }, secs(10))
 
