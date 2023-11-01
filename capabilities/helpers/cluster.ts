@@ -7,7 +7,7 @@ import * as path from 'path';
 import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
 import { TestRunCfg } from './TestRunCfg';
-import { untilTrue } from "./helpers";
+import { untilTrue } from "./general";
 
 export async function clean(trc: TestRunCfg): Promise<void> {
   const nsList = await K8s(kind.Namespace).Get()

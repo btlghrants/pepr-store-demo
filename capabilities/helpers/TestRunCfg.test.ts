@@ -5,9 +5,9 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as path from 'path';
 import { TestRunCfg } from "./TestRunCfg";
 
-import * as helpers from './helpers'
-jest.mock("./helpers")
-const { nearestAncestor } = jest.mocked(helpers)
+import * as general from './general'
+jest.mock("./general")
+const { nearestAncestor } = jest.mocked(general)
 
 import * as fs from "fs"
 jest.mock("fs")
@@ -19,11 +19,6 @@ const name = "capability-name"
 const me = `${here}/${name}.test.ts`
 
 describe("TestRunCfg", () => {
-  // beforeEach(() => {
-  //   nearestAncestor.mockClear().mockImplementation((f, p) => `${root}/${f}`)
-  //   readdirSync.mockClear().mockReturnValue([])
-  // })
-
   it("exposes given test file", () => {
     const trc = new TestRunCfg(me)
     expect(trc.me).toBe(me)

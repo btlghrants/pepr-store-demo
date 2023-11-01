@@ -7,7 +7,7 @@ import * as child_process from 'child_process';
 const exec = util.promisify(child_process.exec)
 import { promises as fs } from 'fs';
 import { K8s, kind } from "kubernetes-fluent-client";
-import { mins, secs, untilTrue, waitLock } from "../helpers/helpers";
+import { mins, secs, untilTrue, waitLock } from "../helpers/general";
 import { TestRunCfg } from '../helpers/TestRunCfg';
 import { clean, setup } from '../helpers/cluster';
 import { build, deploy, ready, synthesizeManifests } from '../helpers/module';

@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2023-Present The Pepr Authors
 
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { secs } from "./helpers";
+import { secs } from "./general";
 import { clean, setup } from './cluster'
 import { TestRunCfg } from './TestRunCfg';
 

@@ -10,7 +10,7 @@ import {
   ms, secs, mins,
   sleep, untilTrue, waitLock,
   nearestAncestor
-} from "../helpers/helpers";
+} from "./general";
 import { promises as pfs } from 'fs';
 import * as os from 'os';
 

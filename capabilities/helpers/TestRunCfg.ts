@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { nearestAncestor } from './helpers'
+import { nearestAncestor } from './general'
 
 export class TestRunCfg {
   me: string;
