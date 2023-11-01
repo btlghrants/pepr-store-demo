@@ -24,28 +24,15 @@ beforeAll(async () => {
 describe(`Capability Module Test: ${runConf.me}`, () => {
 
   describe("Cluster", () => {
-    it("Clean", async () => {
-      await clean(runConf)
-    }, mins(1))
-    it("Prepare", async () => {
-      await setup(runConf)
-    }, secs(1))
+    it("Clean", async () => { await clean(runConf) }, mins(1))
+    it("Prepare", async () => { await setup(runConf) }, secs(1))
   })
 
   describe("Module", () => {
     let buildDir: string
-
-    it("Build", async () => {
-      buildDir = await build(runConf)
-    }, secs(20))
-
-    it("Deploy", async () => {
-      await deploy(buildDir)
-    }, secs(10))
-
-    it("Startup", async () => {
-      await ready()
-    }, secs(30))
+    it("Build", async () => { buildDir = await build(runConf) }, secs(20))
+    it("Deploy", async () => { await deploy(buildDir) }, secs(10))
+    it("Startup", async () => { await ready() }, secs(30))
   })
 
   describe("Scenario", () => {
