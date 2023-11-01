@@ -76,7 +76,7 @@ describe("TestRunCfg", () => {
   it ("derives cluster lock file path", () => {
     const lock = `${root}/cluster.lock`
     const trc = new TestRunCfg(me)
-    expect(trc.lock()).toBe(lock)
+    expect(trc.lockfile()).toBe(lock)
   })
 
   it ("derives cluster module file path", () => {

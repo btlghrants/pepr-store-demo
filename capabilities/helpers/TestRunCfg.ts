@@ -27,7 +27,7 @@ export class TestRunCfg {
     return path.dirname(nearestAncestor("package.json", this.here()))
   }
 
-  lock(): string {
+  lockfile(): string {
     return `${this.root()}/cluster.lock`
   }
 
