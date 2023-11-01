@@ -5,24 +5,13 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as path from 'path';
 import { TestRunCfg } from "./TestRunCfg";
 
-import * as helpers from './helpers';
-jest.spyOn(helpers, "nearestAncestor").mockImplementation(
-  jest.fn() as typeof helpers.nearestAncestor
-)
-const { secs } = helpers
+import * as helpers from './helpers'
+jest.mock("./helpers")
 const { nearestAncestor } = jest.mocked(helpers)
 
 import * as fs from "fs"
 jest.mock("fs")
 const { readdirSync } = jest.mocked(fs)
-
-import * as pfs from "fs/promises"
-jest.mock("fs/promises")
-const { writeFile } = jest.mocked(pfs)
-
-import * as child_process from 'child_process';
-jest.mock("child_process")
-const { exec } = jest.mocked(child_process)
 
 const root = "/fake/root"
 const here = `${root}/sub/path`

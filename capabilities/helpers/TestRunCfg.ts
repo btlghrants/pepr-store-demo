@@ -1,8 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import * as util from 'util';
-import * as child_process from 'child_process';
-const exec = util.promisify(child_process.exec)
 import { nearestAncestor } from './helpers'
 
 export class TestRunCfg {
