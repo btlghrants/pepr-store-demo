@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as pfs from 'fs/promises';
 import { TestRunCfg } from './TestRunCfg';
 
-export async function build(trc: TestRunCfg): Promise<string> {
+export async function build(trc: TestRunCfg) {
   // `pepr build` requires /dist be in project root... hence, all of this ⮧
   // TODO: add a `pepr build --outdir` flag!
 

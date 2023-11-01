@@ -3,12 +3,12 @@
 
 import { describe, expect, it, jest } from '@jest/globals';
 import { secs } from "./general";
-import { synthesizeManifests } from './module'
+import { synthesizeManifests, deploy, ready } from './module'
 import { TestRunCfg } from './TestRunCfg';
 
 import * as pfs from "fs/promises"
 jest.mock("fs/promises")
-const { writeFile } = jest.mocked(pfs)
+const { writeFile, readdir } = jest.mocked(pfs)
 
 import * as child_process from 'child_process';
 jest.mock("child_process")
@@ -20,15 +20,28 @@ describe.skip("build()", () => {
   })
 })
 
-describe.skip("deploy()", () => {
-  it("???", () => {
-    expect("TODO").toBe("DONE")
+describe("deploy()", () => {
+  it("finds module yaml and tells collaborator to apply it", async () => {
+    const dir = "fake/build/dir"
+    const mod = "pepr-module-00000000-0000-0000-0000-000000000000.yaml"
+    const files = [ "irrelevant", "whatever", mod ]
+    readdir.mockClear().mockImplementation((() => files) as unknown as typeof readdir)
+    exec.mockClear().mockImplementation(((_, cb) => cb(null, ({ stdout: "" }))) as unknown as typeof exec)
+
+    await deploy(dir)
+
+    expect(exec.mock.calls[0][0]).toBe(`kubectl apply -f ${dir}/${mod}`)
   })
 })
 
-describe.skip("ready()", () => {
-  it("???", () => {
-    expect("TODO").toBe("DONE")
+describe("ready()", () => {
+  it("tells collaborator to wait for deployments in the 'pepr-system' namespace to complete", async () => {
+    exec.mockClear().mockImplementation(((_, cb) => cb(null, ({ stdout: "" }))) as unknown as typeof exec)
+
+    await ready()
+
+    const waitCmd = "kubectl rollout status deployment -n pepr-system"
+    expect(exec.mock.calls[0][0]).toBe(waitCmd)
   })
 })
 
@@ -36,7 +49,6 @@ describe("synthesizeManifests()", () => {
   const root = "/fake/root"
   const here = `${root}/sub/path`
   const name = "capability-name"
-  const me = `${here}/${name}.test.ts`
 
   describe("single manifest, single resource", () => {
     it("writes List-wrapped, jsonified resources to file", async () => {
