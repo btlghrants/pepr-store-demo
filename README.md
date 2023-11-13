@@ -25,6 +25,11 @@ Module Root
 - Refactor
   - update module.synthesizeManifests add the per-test namespace ONLY if:
     - the kubectl-gen'd ns is "default"
+      - remove namespace gen
+      - do cleanup between tests based on applied resource types + transient tag
+
+  - make test helper package to contain helper funcs
+
   - final review & refactor to normalize mock patterns
     - TestRunCfg has some nice patterns for whole-module mocks & partial module mocks (w/ spyOn())
     - formalize / document folder structure for <root>/capabilities/<named-set>/capability.*.ts
