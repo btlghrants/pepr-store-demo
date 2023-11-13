@@ -70,14 +70,24 @@ export async function synthesizeManifests(trc: TestRunCfg) {
 
     // strip rando fields added by kubectl --dry-run
     resources = resources.map(res => {
-      delete res.metadata.annotations
-      delete res.metadata.namespace
+      // "metadata.namespace: default" is added if no ns spec'd... but that's fine
+      // "metadata.annotations.['kubectl.kubernetes.io/*']" annotations need to go though
+      for (const anno in res.metadata.annotations) {
+        if (anno.startsWith("kubectl.kubernetes.io/")) {
+          delete res.metadata.annotations[anno]
+        }
+      }
+
+      // remove "metadata.annotations" if empty (i.e. kubectl added it)
+      if (Object.keys(res.metadata.annotations).length === 0) {
+        delete res.metadata.annotations
+      }
+
       return res
     })
 
     // add test-required fields
     resources = resources.map(res => {
-      res.metadata.namespace = trc.namespace()
       res.metadata.labels = {...res.metadata.labels, [trc.labelKey()]: trc.unique }
       return res
     })

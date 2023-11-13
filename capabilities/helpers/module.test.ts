@@ -68,7 +68,8 @@ describe("synthesizeManifests()", () => {
           "kind": "ConfigMap",
           "metadata": {
             "annotations": {
-                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"cm-alpha\",\"namespace\":\"default\"}}\n"
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"cm-alpha\",\"namespace\":\"default\"}}\n",
+                "test": "annotation"
             },
             "name": "cm-alpha",
             "namespace": "default"
@@ -84,8 +85,11 @@ describe("synthesizeManifests()", () => {
               "apiVersion": "v1",
               "kind": "ConfigMap",
               "metadata": {
+                "annotations": {
+                  "test": "annotation"
+                },
                 "name": "cm-alpha",
-                "namespace": "${trc.namespace()}",
+                "namespace": "default",
                 "labels": {
                   "${trc.labelKey()}": "${trc.unique}"
                 }
@@ -191,7 +195,7 @@ describe("synthesizeManifests()", () => {
               "kind": "ConfigMap",
               "metadata": {
                 "name": "cm-alpha",
-                "namespace": "${trc.namespace()}",
+                "namespace": "default",
                 "labels": {
                   "${trc.labelKey()}": "${trc.unique}"
                 }
@@ -202,7 +206,7 @@ describe("synthesizeManifests()", () => {
               "kind": "ConfigMap",
               "metadata": {
                 "name": "cm-bravo",
-                "namespace": "${trc.namespace()}",
+                "namespace": "default",
                 "labels": {
                   "${trc.labelKey()}": "${trc.unique}"
                 }
@@ -221,7 +225,7 @@ describe("synthesizeManifests()", () => {
               "kind": "ConfigMap",
               "metadata": {
                 "name": "cm-charlie",
-                "namespace": "${trc.namespace()}",
+                "namespace": "default",
                 "labels": {
                   "${trc.labelKey()}": "${trc.unique}"
                 }
@@ -232,7 +236,7 @@ describe("synthesizeManifests()", () => {
               "kind": "ConfigMap",
               "metadata": {
                 "name": "cm-delta",
-                "namespace": "${trc.namespace()}",
+                "namespace": "default",
                 "labels": {
                   "${trc.labelKey()}": "${trc.unique}"
                 }

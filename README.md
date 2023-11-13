@@ -23,10 +23,9 @@ Module Root
 # TODOs
 
 - Refactor
-  - update module.synthesizeManifests add the per-test namespace ONLY if:
-    - the kubectl-gen'd ns is "default"
-      - remove namespace gen
-      - do cleanup between tests based on applied resource types + transient tag
+  - update cleanup() between tests based on applied resource types + transient tag
+
+  - remove test namespace from suite / TestRunCfg
 
   - make test helper package to contain helper funcs
 
