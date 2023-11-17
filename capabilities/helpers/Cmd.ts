@@ -1,4 +1,3 @@
-import { untilTrue, resourceGone } from "./general";
 import { exec } from 'child_process';
 
 export interface Spec {
