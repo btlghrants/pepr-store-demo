@@ -28,7 +28,7 @@ export class TestRunCfg {
   }
 
   module(): string {
-    return `${this.me.replace('.test', '.pepr')}`
+    return `${this.here()}/${this.name()}.pepr.ts`
   }
 
   labelKey(): string {

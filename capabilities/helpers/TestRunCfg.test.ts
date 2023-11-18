@@ -61,7 +61,7 @@ describe("TestRunCfg", () => {
   })
 
   it ("derives cluster module file path", () => {
-    const mod = me.replace('.test', '.pepr')
+    const mod = me.replace('.e2e.test', '.pepr')
     const trc = new TestRunCfg(me)
     expect(trc.module()).toBe(mod)
   })
