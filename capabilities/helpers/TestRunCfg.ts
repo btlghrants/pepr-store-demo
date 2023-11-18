@@ -12,7 +12,7 @@ export class TestRunCfg {
   }
 
   name(): string {
-    return path.basename(this.me).replace('.test.ts', '')
+    return path.basename(this.me).replace(/\..*$/, '')
   }
 
   here(): string {
@@ -31,12 +31,8 @@ export class TestRunCfg {
     return `${this.me.replace('.test', '.pepr')}`
   }
 
-  namespace(): string {
-    return `${path.basename(this.here())}-${this.name()}-${this.unique}`
-  }
-
   labelKey(): string {
-    return `${this.name()}/test-transient`
+    return `test-transient/${this.name()}`
   }
 
   manifests(): [string, string][] {

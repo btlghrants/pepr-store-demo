@@ -1,6 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
-// SPDX-FileCopyrightText: 2023-Present The Pepr Authors
-
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as path from 'path';
 import { TestRunCfg } from "./TestRunCfg";
@@ -16,7 +13,7 @@ const { readdirSync } = jest.mocked(fs)
 const root = "/fake/root"
 const here = `${root}/sub/path`
 const name = "capability-name"
-const me = `${here}/${name}.test.ts`
+const me = `${here}/${name}.e2e.test.ts`
 
 describe("TestRunCfg", () => {
   it("exposes given test file", () => {
@@ -69,15 +66,8 @@ describe("TestRunCfg", () => {
     expect(trc.module()).toBe(mod)
   })
 
-  it("exposes a capability-and-run-specific namespace", () => {
-    const unique = "i-am-so-special"
-    const ns = `${path.basename(here)}-${name}-${unique}`
-    const trc = new TestRunCfg(me, unique)
-    expect(trc.namespace()).toBe(ns)
-  })
-
   it("exposes a capability-specific label key", () => {
-    const lk = `${name}/test-transient`
+    const lk = `test-transient/${name}`
     const trc = new TestRunCfg(me)
     expect(trc.labelKey()).toBe(lk)
   })
